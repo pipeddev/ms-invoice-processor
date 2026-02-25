@@ -1,0 +1,11 @@
+{
+  "name": "@procureai/infra",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.995.0",
+    "@procureai/domain": "workspace:*"
+  }
+}

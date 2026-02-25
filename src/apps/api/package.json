@@ -1,0 +1,23 @@
+{
+  "name": "@procureai/api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/handler.ts",
+  "types": "src/handler.ts",
+  "scripts": {
+    "dev": "tsx src/local-server.ts"
+  },
+  "dependencies": {
+    "@procureai/domain": "workspace:*",
+    "@procureai/infra": "workspace:*",
+    "@procureai/shared": "workspace:*",
+    "busboy": "^1.6.0",
+    "dotenv": "^17.3.1",
+    "pino": "^10.3.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/busboy": "^1.5.4",
+    "@types/pino": "^7.0.5"
+  }
+}

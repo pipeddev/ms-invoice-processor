@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@procureai/domain": ["src/packages/domain/src/index.ts"],
+      "@procureai/domain/*": ["src/packages/domain/src/*"],
+      "@procureai/infra": ["src/packages/infra/src/index.ts"],
+      "@procureai/infra/*": ["src/packages/infra/src/*"],
+      "@procureai/shared": ["src/packages/shared/src/index.ts"],
+      "@procureai/shared/*": ["src/packages/shared/src/*"]
+    }
+  }
+}
