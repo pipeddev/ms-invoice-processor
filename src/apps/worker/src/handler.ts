@@ -1,6 +1,20 @@
+import { ProcessInvoiceUseCase } from '@procureai/domain';
+import {
+  InMemoryInvoiceRepository,
+  OpenAiInvoiceExtractor,
+  S3FileDownloader
+} from '@procureai/infra';
 import { createLogger } from '@procureai/shared';
 
 const logger = createLogger('worker-handler');
+
+const processInvoiceUseCase = new ProcessInvoiceUseCase({
+  invoiceRepository: new InMemoryInvoiceRepository(),
+  fileDownloader: new S3FileDownloader({
+    region: process.env.AWS_REGION ?? 'us-east-1'
+  }),
+  invoiceDataExtractor: new OpenAiInvoiceExtractor()
+});
 
 type SqsRecord = {
   body: string;
@@ -35,19 +49,24 @@ export const handler = async (event: SqsEvent): Promise<void> => {
 
       if (!bucket || !key) {
         logger.warn({ body }, 'Missing bucket/key in S3 event body');
+        return;
       }
 
-      // Next steps later:
-      // - parse invoiceId from key: invoices/<invoiceId>.pdf
-      // - download from S3
-      // - process with LLM
-    } catch (err) {
-      logger.error(
-        { err, body: record.body },
-        'Failed to parse SQS record body'
+      // Parse invoiceId from key: invoices/<invoiceId>-filename.pdf
+      const invoiceIdMatch = key.match(
+        /invoices\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i
       );
+      const invoiceId = invoiceIdMatch?.[1];
+      if (!invoiceId) {
+        logger.warn({ key }, 'Could not parse invoiceId from S3 key');
+        return;
+      }
+
+      await processInvoiceUseCase.execute({ invoiceId, bucket, key });
+    } catch (err) {
+      logger.error({ err, body: record.body }, 'Failed to process SQS record');
       // Throwing makes Lambda treat this batch item as failed.
-      // With batch size 1, it will retry and eventually go to DLQ (when you add it).
+      // With batch size 1, it will retry and eventually go to DLQ.
       throw err;
     }
   }

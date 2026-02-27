@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'pending';
+export type InvoiceStatus = 'pending' | 'processing' | 'processed' | 'failed';
 
 export interface InvoiceEvent {
   status: InvoiceStatus;

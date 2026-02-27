@@ -1,5 +1,6 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import type { FileStore, FileStoreSaveInput } from '@procureai/domain';
+import { Invoice } from '../../../domain/src/entities/invoice';
 
 export type S3FileStoreConfig = {
   region: string;
@@ -21,7 +22,11 @@ export class S3FileStore implements FileStore {
         Bucket: this.bucket,
         Key: input.key,
         Body: input.bytes,
-        ContentType: input.contentType
+        ContentType: input.contentType,
+        Metadata: {
+          'invoice-id': input.invoiceId,
+          'file-name': input.key
+        }
       })
     );
   }
