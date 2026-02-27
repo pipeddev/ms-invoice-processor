@@ -1,5 +1,13 @@
 {
   "name": "@procureai/worker",
   "version": "0.1.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/local-server.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.995.0",
+    "@procureai/infra": "workspace:*",
+    "@procureai/shared": "workspace:*"
+  }
 }

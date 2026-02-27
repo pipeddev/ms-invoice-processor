@@ -1,4 +1,5 @@
 export interface FileStoreSaveInput {
+  invoiceId: string;
   key: string;
   bytes: Buffer;
   contentType: string;

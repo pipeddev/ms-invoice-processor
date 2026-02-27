@@ -107,6 +107,7 @@ export class UploadInvoiceUseCase {
     };
 
     await this.fileStore.saveFile({
+      invoiceId,
       key,
       bytes: input.bytes,
       contentType: PDF_CONTENT_TYPE
