@@ -17,7 +17,6 @@ if (!queueUrl) {
 const consumer = new SqsConsumer({ queueUrl, region });
 
 async function onMessage(message: Message): Promise<void> {
-  // Adapt the SQS Message to the SqsEvent shape expected by the Lambda handler
   await handler({ Records: [{ body: message.Body ?? '' }] });
 }
 

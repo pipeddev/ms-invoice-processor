@@ -13,11 +13,8 @@ export type MessageHandler = (message: Message) => Promise<void>;
 export type SqsConsumerConfig = {
   queueUrl: string;
   region: string;
-  /** Number of messages per poll (1–10). Defaults to 10. */
   maxMessages?: number;
-  /** Long-polling wait time in seconds (0–20). Defaults to 20. */
   waitTimeSeconds?: number;
-  /** Visibility timeout in seconds. Defaults to 30. */
   visibilityTimeout?: number;
 };
 
@@ -28,7 +25,7 @@ export class SqsConsumer {
 
   constructor(config: SqsConsumerConfig) {
     this.config = {
-      maxMessages: 10,
+      maxMessages: 5,
       waitTimeSeconds: 20,
       visibilityTimeout: 30,
       ...config
@@ -98,7 +95,6 @@ export class SqsConsumer {
           { err, messageId: message.MessageId },
           'Message processing failed — will be retried after VisibilityTimeout'
         );
-        // Do NOT delete: let SQS return the message to the queue
       }
     }
   }

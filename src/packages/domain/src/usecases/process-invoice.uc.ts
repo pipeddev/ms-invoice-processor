@@ -45,7 +45,6 @@ export class ProcessInvoiceUseCase {
 
     logger.info({ invoiceId, bucket, key }, 'Starting invoice processing');
 
-    // 1. Mark as processing
     const invoice = await this.invoiceRepository.findById(invoiceId);
     if (!invoice) {
       logger.warn({ invoiceId }, 'Invoice not found, skipping');
@@ -63,12 +62,10 @@ export class ProcessInvoiceUseCase {
     logger.info({ invoiceId }, 'Invoice marked as processing');
 
     try {
-      // 2. Download PDF from S3
       logger.info({ invoiceId, bucket, key }, 'Downloading PDF from S3');
       const pdfBuffer = await this.fileDownloader.downloadFile(bucket, key);
       logger.info({ invoiceId, sizeBytes: pdfBuffer.length }, 'PDF downloaded');
 
-      // 3. Extract data with LLM
       logger.info({ invoiceId }, 'Extracting data with LLM');
       const extractedData = await this.invoiceDataExtractor.extract(pdfBuffer);
       logger.info(
@@ -76,7 +73,6 @@ export class ProcessInvoiceUseCase {
         'Data extracted'
       );
 
-      // 4. Mark as processed
       const processedAt = this.now().toISOString();
       invoice.status = 'processed';
       invoice.events.push({
@@ -89,7 +85,6 @@ export class ProcessInvoiceUseCase {
 
       return { invoiceId, extractedData, processedAt };
     } catch (err) {
-      // 5. Mark as failed on error
       const failedAt = this.now().toISOString();
       invoice.status = 'failed';
       invoice.events.push({ status: 'failed', by: 'worker', at: failedAt });

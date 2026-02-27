@@ -24,22 +24,15 @@ type SqsEvent = {
   Records: SqsRecord[];
 };
 
-/**
- * S3->SQS message body contains a JSON string with:
- * { Records: [{ s3: { bucket: { name }, object: { key } } }] }
- */
 export const handler = async (event: SqsEvent): Promise<void> => {
   for (const record of event.Records ?? []) {
     try {
       const body = JSON.parse(record.body);
 
-      // S3 event notifications usually come as:
-      // body.Records[0].s3.bucket.name and body.Records[0].s3.object.key
       const s3Record = body?.Records?.[0];
       const bucket = s3Record?.s3?.bucket?.name;
       const rawKey = s3Record?.s3?.object?.key;
 
-      // S3 may URL-encode the key (spaces, special chars)
       const key =
         typeof rawKey === 'string'
           ? decodeURIComponent(rawKey.replace(/\+/g, ' '))
@@ -52,7 +45,6 @@ export const handler = async (event: SqsEvent): Promise<void> => {
         return;
       }
 
-      // Parse invoiceId from key: invoices/<invoiceId>-filename.pdf
       const invoiceIdMatch = key.match(
         /invoices\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i
       );
