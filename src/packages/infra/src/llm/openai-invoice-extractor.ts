@@ -1,3 +1,4 @@
+import { PDFParse } from 'pdf-parse';
 import OpenAI from 'openai';
 import type {
   ExtractedInvoiceData,
@@ -7,8 +8,8 @@ import { createLogger } from '@procureai/shared';
 
 const logger = createLogger('openai-invoice-extractor');
 
-const SYSTEM_PROMPT = `Eres un extractor de datos de facturas chilenas en PDF codificadas en base64.
-Analiza el documento y extrae los datos con precisión.
+const SYSTEM_PROMPT = `Eres un extractor de datos de facturas chilenas.
+Se te proporcionará el texto extraído del PDF. Analiza el contenido y extrae los datos con precisión.
 Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
 {
   "invoiceNumber": string,           // Número de folio o factura (ej: "12345")
@@ -67,9 +68,13 @@ export class OpenAiInvoiceExtractor implements InvoiceDataExtractor {
   }
 
   async extract(pdfBuffer: Buffer): Promise<ExtractedInvoiceData> {
-    logger.info({ model: this.model }, 'Sending PDF to LLM for extraction');
-
-    const base64Pdf = pdfBuffer.toString('base64');
+    logger.info({ model: this.model }, 'Extracting text from PDF');
+    const parser = new PDFParse({ data: pdfBuffer });
+    const { text: pdfText } = await parser.getText();
+    logger.info(
+      { chars: pdfText.length },
+      'PDF text extracted, sending to LLM'
+    );
 
     const response = await this.client.chat.completions.create({
       model: this.model,
@@ -78,13 +83,7 @@ export class OpenAiInvoiceExtractor implements InvoiceDataExtractor {
         { role: 'system', content: SYSTEM_PROMPT },
         {
           role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Extrae los datos de esta factura en PDF (base64):'
-            },
-            { type: 'text', text: base64Pdf }
-          ]
+          content: `Extrae los datos de esta factura:\n\n${pdfText}`
         }
       ]
     });

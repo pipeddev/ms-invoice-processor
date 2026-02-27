@@ -46,7 +46,7 @@ export class ProcessInvoiceUseCase {
     logger.info({ invoiceId, bucket, key }, 'Starting invoice processing');
 
     // 1. Mark as processing
-    /*const invoice = await this.invoiceRepository.findById(invoiceId);
+    const invoice = await this.invoiceRepository.findById(invoiceId);
     if (!invoice) {
       logger.warn({ invoiceId }, 'Invoice not found, skipping');
       throw new Error(`Invoice not found: ${invoiceId}`);
@@ -60,7 +60,7 @@ export class ProcessInvoiceUseCase {
       at: processingAt
     });
     await this.invoiceRepository.save(invoice);
-    logger.info({ invoiceId }, 'Invoice marked as processing');*/
+    logger.info({ invoiceId }, 'Invoice marked as processing');
 
     try {
       // 2. Download PDF from S3
@@ -78,22 +78,22 @@ export class ProcessInvoiceUseCase {
 
       // 4. Mark as processed
       const processedAt = this.now().toISOString();
-      /*invoice.status = 'processed';
+      invoice.status = 'processed';
       invoice.events.push({
         status: 'processed',
         by: 'worker',
         at: processedAt
       });
-      await this.invoiceRepository.save(invoice);*/
+      await this.invoiceRepository.save(invoice);
       logger.info({ invoiceId }, 'Invoice marked as processed');
 
       return { invoiceId, extractedData, processedAt };
     } catch (err) {
       // 5. Mark as failed on error
       const failedAt = this.now().toISOString();
-      /*invoice.status = 'failed';
+      invoice.status = 'failed';
       invoice.events.push({ status: 'failed', by: 'worker', at: failedAt });
-      await this.invoiceRepository.save(invoice);*/
+      await this.invoiceRepository.save(invoice);
       logger.error({ invoiceId, err }, 'Invoice processing failed');
       throw err;
     }
