@@ -9,6 +9,7 @@
     "@aws-sdk/client-sqs": "^3.995.0",
     "@procureai/domain": "workspace:*",
     "@procureai/shared": "workspace:*",
+    "mongoose": "^9.2.3",
     "openai": "^4.0.0",
     "pdf-parse": "^2.4.5"
   },

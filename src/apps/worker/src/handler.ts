@@ -1,6 +1,7 @@
 import { ProcessInvoiceUseCase } from '@procureai/domain';
 import {
   InMemoryInvoiceRepository,
+  MongoInvoiceRepository,
   OpenAiInvoiceExtractor,
   S3FileDownloader
 } from '@procureai/infra';
@@ -8,8 +9,12 @@ import { createLogger } from '@procureai/shared';
 
 const logger = createLogger('worker-handler');
 
+const invoiceRepository = process.env.MONGODB_URI
+  ? new MongoInvoiceRepository({ uri: process.env.MONGODB_URI })
+  : new InMemoryInvoiceRepository();
+
 const processInvoiceUseCase = new ProcessInvoiceUseCase({
-  invoiceRepository: new InMemoryInvoiceRepository(),
+  invoiceRepository,
   fileDownloader: new S3FileDownloader({
     region: process.env.AWS_REGION ?? 'us-east-1'
   }),

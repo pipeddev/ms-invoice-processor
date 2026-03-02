@@ -75,11 +75,13 @@ export class ProcessInvoiceUseCase {
 
       const processedAt = this.now().toISOString();
       invoice.status = 'processed';
+      invoice.extractedData = extractedData;
       invoice.events.push({
         status: 'processed',
         by: 'worker',
         at: processedAt
       });
+
       await this.invoiceRepository.save(invoice);
       logger.info({ invoiceId }, 'Invoice marked as processed');
 
