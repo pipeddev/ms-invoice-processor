@@ -8,6 +8,7 @@ import { UploadInvoiceUseCase } from '@procureai/domain';
 import {
   InMemoryFileStore,
   InMemoryInvoiceRepository,
+  MongoInvoiceRepository,
   S3FileStore
 } from '@procureai/infra';
 
@@ -21,7 +22,10 @@ const fileStore = process.env.S3_BUCKET_INVOICES
     })
   : new InMemoryFileStore();
 
-const invoiceRepository = new InMemoryInvoiceRepository();
+const invoiceRepository = process.env.MONGODB_URI
+  ? new MongoInvoiceRepository({ uri: process.env.MONGODB_URI })
+  : new InMemoryInvoiceRepository();
+
 const uploadInvoiceUseCase = new UploadInvoiceUseCase({
   invoiceRepository,
   fileStore

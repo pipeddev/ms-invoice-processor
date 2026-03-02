@@ -80,6 +80,7 @@ export class ProcessInvoiceUseCase {
         by: 'worker',
         at: processedAt
       });
+
       await this.invoiceRepository.save(invoice);
       logger.info({ invoiceId }, 'Invoice marked as processed');
 
