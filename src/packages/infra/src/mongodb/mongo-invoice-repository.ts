@@ -28,20 +28,22 @@ export class MongoInvoiceRepository implements InvoiceRepository {
 
   async save(invoice: Invoice): Promise<void> {
     await this.connect();
-    await InvoiceModel.findOneAndUpdate({ id: invoice.id }, invoice, {
-      upsert: true,
-      new: true,
-      setDefaultsOnInsert: true
-    });
-    logger.info({ invoiceId: invoice.id }, 'Invoice saved to MongoDB');
+    await InvoiceModel.findOneAndUpdate(
+      { id: invoice.id },
+      {
+        $set: {
+          status: invoice.status,
+          extractedData: invoice.extractedData,
+          events: invoice.events
+        },
+        $setOnInsert: { id: invoice.id } // 👈 Solo asigna _id en inserción
+      },
+      { upsert: true, new: true }
+    );
   }
 
   async findById(id: string): Promise<Invoice | null> {
     await this.connect();
-
-    console.log('mongo db:', InvoiceModel.db.name);
-    console.log('collection:', InvoiceModel.collection.name);
-    console.log('query id:', id);
 
     const doc = await InvoiceModel.findOne({ id: id }).lean();
     if (!doc) return null;

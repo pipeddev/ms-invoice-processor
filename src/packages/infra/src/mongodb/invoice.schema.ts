@@ -25,19 +25,25 @@ const InvoiceFileMetadataSchema = new Schema<InvoiceFileMetadata>(
 
 const InvoiceSchema = new Schema<Invoice>(
   {
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true, index: true },
     status: {
       type: String,
       required: true,
       enum: ['pending', 'processing', 'processed', 'failed'],
       default: 'pending'
     },
+    extractedData: {
+      type: Schema.Types.Mixed,
+      default: undefined
+    },
     createdAt: { type: String, required: true },
     events: { type: [InvoiceEventSchema], required: true, default: [] },
     file: { type: InvoiceFileMetadataSchema, required: true }
   },
   {
-    versionKey: false
+    versionKey: false,
+    timestamps: true,
+    strict: false
   }
 );
 

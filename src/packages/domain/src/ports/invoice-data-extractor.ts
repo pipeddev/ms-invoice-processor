@@ -6,6 +6,7 @@ export interface ExtractedLineItem {
 }
 
 export interface ExtractedInvoiceData {
+  [key: string]: unknown; 
   invoiceNumber: string;
   date: string;
   totalAmount: number;
