@@ -1,43 +1,41 @@
 # ms-invoice-processor
 
-Event-driven microservice for automated PDF invoice processing with structured data extraction via LLM.
-Built with hexagonal architecture on Node.js + TypeScript.
-
-[🇪🇸 Leer en español](./README.es.md)
+Microservicio event-driven para procesamiento automatizado de facturas en formato PDF, con extracción estructurada mediante LLM.
+Implementado con arquitectura hexagonal sobre Node.js + TypeScript.
 
 ---
 
-## Description
+## Descripción
 
-This microservice handles uploading, storing, and processing PDF invoices.
-It uses OpenAI to extract structured data (invoice number, RUT, amounts, line items, etc.) and persists it in MongoDB.
+Este microservicio permite subir, almacenar y procesar facturas en formato PDF.
+Utiliza OpenAI para extraer datos estructurados (folio, RUT, montos, ítems, etc.) y los almacena en MongoDB.
 
-Communication between the API and the processing worker is fully asynchronous via AWS SQS.
+La comunicación entre la API y el worker de procesamiento se realiza de forma asíncrona mediante AWS SQS.
 
 ---
 
-## Architecture
+## Arquitectura
 
-The project follows a **Hexagonal Architecture (Ports & Adapters)** organized as a monorepo with pnpm workspaces:
+El proyecto sigue una **arquitectura hexagonal (Ports & Adapters)** organizada como monorepo con pnpm workspaces:
 
 ```
 src/
 ├── apps/
-│   ├── api/        # HTTP API (invoice upload)
-│   └── worker/     # SQS consumer (invoice processing)
+│   ├── api/        # HTTP API (subida de facturas)
+│   └── worker/     # Consumidor SQS (procesamiento de facturas)
 └── packages/
-    ├── domain/     # Entities, ports and use cases
-    ├── infra/      # Adapters (MongoDB, S3, SQS, OpenAI)
-    └── shared/     # Shared logger and Zod schemas
+    ├── domain/     # Entidades, puertos y casos de uso
+    ├── infra/      # Adaptadores (MongoDB, S3, SQS, OpenAI)
+    └── shared/     # Logger y Zod schemas compartidos
 ```
 
 ---
 
-## High-level Diagram
+## Diagrama de alto nivel
 
 ```mermaid
 flowchart LR
-  Client[Client] --> API[API / Upload]
+  Client[Cliente] --> API[API / Upload]
   API -->|multipart/form-data| S3[(S3 Bucket)]
   API -->|status: pending| Mongo[(MongoDB)]
   S3 -->|Event Notification| SQS[(SQS Queue)]
@@ -59,8 +57,8 @@ flowchart LR
 │  ────────            ────────────────               │
 │  Invoice             InvoiceRepository              │
 │                      FileStore                      │
-│  Use Cases           FileDownloader                 │
-│  ───────────         InvoiceDataExtractor           │
+│  UseCases            FileDownloader                 │
+│  ──────────          InvoiceDataExtractor           │
 │  UploadInvoiceUseCase                               │
 │  ProcessInvoiceUseCase                              │
 │                                                     │
@@ -88,11 +86,11 @@ flowchart LR
     └──────────┘             └──────────────┘
 ```
 
-**Dependency rule:** the domain imports nothing from AWS, Mongoose, or OpenAI — pure TypeScript interfaces only. Infra implements the ports, apps do the wiring in the container.
+**Regla de dependencia:** el domain no importa nada de AWS, Mongoose ni OpenAI. Solo TypeScript puro e interfaces. La infra implementa los ports, los apps hacen el wiring en el container.
 
 ---
 
-## Project Structure
+## Estructura del proyecto
 
 ```
 ms-invoice-processor/
@@ -105,15 +103,15 @@ ms-invoice-processor/
 │   │   │   │   ├── errors/
 │   │   │   │   │   └── http-errors.ts        # HttpError, BadRequestError, etc.
 │   │   │   │   ├── handler.ts                # Lambda entry (APIGatewayProxyEventV2)
-│   │   │   │   ├── jsend.ts                  # JSend response formatter
-│   │   │   │   ├── local-server.ts           # Node http server for local dev
-│   │   │   │   └── router.ts                 # Minimal router without Express
+│   │   │   │   ├── jsend.ts                  # Formato de respuesta JSend
+│   │   │   │   ├── local-server.ts           # Servidor Node http para dev local
+│   │   │   │   └── router.ts                 # Router mínimo sin Express
 │   │   │   ├── .env
 │   │   │   └── package.json
 │   │   └── worker/
 │   │       ├── src/
 │   │       │   ├── handler.ts                # SQS Lambda entry
-│   │       │   └── local-server.ts           # Local SQS simulation
+│   │       │   └── local-server.ts           # Simulación SQS local
 │   │       ├── .env
 │   │       └── package.json
 │   └── packages/
@@ -157,25 +155,24 @@ ms-invoice-processor/
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json
 ├── package.json
-├── README.md          # English (this file)
-└── README.es.md       # Spanish
+└── README.md
 ```
 
 ---
 
-## Processing Flow
+## Flujo de procesamiento
 
 ```
-Client
+Cliente
   │
   ▼
 POST /invoices/upload  (multipart/form-data)
   │  UploadInvoiceUseCase
-  │  • Validates PDF (signature %PDF-, size ≤ 10MB, .pdf extension)
-  │  • Generates UUID
-  │  • Uploads file to S3  →  key: invoices/{uuid}-{fileName}
-  │  • Creates Invoice in MongoDB  (status: pending)
-  │  • Returns 202 { invoiceId, storageKey }
+  │  • Valida PDF (firma %PDF-, tamaño ≤ 10MB, extensión .pdf)
+  │  • Genera UUID
+  │  • Sube archivo a S3  →  key: invoices/{uuid}-{fileName}
+  │  • Crea Invoice en MongoDB  (status: pending)
+  │  • Responde 202 { invoiceId, storageKey }
   │
   ▼
 S3 Event Notification  (ObjectCreated:Put)
@@ -186,31 +183,31 @@ SQS Queue
   ▼
 Worker (SQS Consumer)
   │  ProcessInvoiceUseCase
-  │  • Extracts invoiceId from S3 key using UUID regex
-  │  • Downloads PDF from S3
-  │  • Extracts text with pdf-parse
-  │  • Sends text to OpenAI (json_object mode + schema-first system prompt)
-  │  • Parses and validates structured JSON → ExtractedInvoiceData
-  │  • Updates Invoice in MongoDB (status: processed + extractedData)
+  │  • Extrae invoiceId del key con regex UUID
+  │  • Descarga PDF desde S3
+  │  • Extrae texto con pdf-parse
+  │  • Envía texto a OpenAI (json_object mode + system prompt schema-first)
+  │  • Parsea JSON estructurado → ExtractedInvoiceData
+  │  • Actualiza Invoice en MongoDB (status: processed + extractedData)
   │
   ▼
-MongoDB  (final document)
+MongoDB  (documento final)
 ```
 
 ---
 
-## Idempotency
+## Idempotencia
 
-SQS guarantees **at-least-once delivery** — the same message can arrive twice. To prevent duplicate processing, the worker validates the `status` before processing and MongoDB uses `findOneAndUpdate` with `upsert`.
+SQS garantiza entrega **al menos una vez** — el mismo mensaje puede llegar dos veces. Para evitar reprocesamiento el worker valida el `status` antes de procesar y MongoDB usa `findOneAndUpdate` con `upsert`.
 
-Possible Invoice states:
+Estados posibles del Invoice:
 
 ```
 pending → processing → processed
                     → failed
 ```
 
-The worker extracts the `invoiceId` from the S3 key using a UUID regex:
+El worker extrae el `invoiceId` del S3 key con una regex UUID:
 
 ```typescript
 const invoiceIdMatch = key.match(
@@ -221,19 +218,19 @@ const invoiceId = invoiceIdMatch?.[1];
 
 ---
 
-## Response Format (JSend)
+## Formato de respuestas (JSend)
 
-The API follows the [JSend](https://github.com/omniti-labs/jsend) standard:
+La API sigue el estándar [JSend](https://github.com/omniti-labs/jsend):
 
-| Type      | When                                |
-| --------- | ----------------------------------- |
-| `success` | Request processed successfully      |
-| `fail`    | Validation error or invalid request |
-| `error`   | Internal server error               |
+| Tipo      | Cuándo se usa                          |
+| --------- | -------------------------------------- |
+| `success` | Request procesado correctamente        |
+| `fail`    | Error de validación o request inválido |
+| `error`   | Error interno del servidor             |
 
 ```json
 // 202 success
-{ "status": "success", "data": { "invoiceId": "uuid", "storageKey": "invoices/uuid-invoice.pdf" } }
+{ "status": "success", "data": { "invoiceId": "uuid", "storageKey": "invoices/uuid-factura.pdf" } }
 
 // 400 fail
 { "status": "fail", "data": { "file": "Invalid PDF signature" } }
@@ -244,27 +241,27 @@ The API follows the [JSend](https://github.com/omniti-labs/jsend) standard:
 
 ---
 
-## Invoice Document in MongoDB
+## Documento Invoice en MongoDB
 
 ```json
 {
   "id": "80f0dfae-ec51-4058-af68-b5b00c8d4bca",
   "status": "processed",
   "file": {
-    "name": "invoice.pdf",
+    "name": "factura.pdf",
     "type": "application/pdf"
   },
   "extractedData": {
     "invoiceNumber": "12345",
-    "invoiceType": "Electronic Invoice",
+    "invoiceType": "Factura Electrónica",
     "date": "2024-03-01",
     "dueDate": null,
     "currency": "CLP",
     "vendor": {
-      "name": "Supplier Inc.",
+      "name": "Proveedor S.A.",
       "rut": "76.123.456-7",
       "address": "Av. Providencia 123, Santiago",
-      "activity": "Cleaning services"
+      "activity": "Servicios de limpieza"
     },
     "client": {
       "name": "Hotel Plaza",
@@ -273,7 +270,7 @@ The API follows the [JSend](https://github.com/omniti-labs/jsend) standard:
     },
     "lineItems": [
       {
-        "description": "Monthly cleaning service",
+        "description": "Servicio de limpieza mensual",
         "quantity": 1,
         "unitPrice": 1000000,
         "totalPrice": 1000000
@@ -284,7 +281,7 @@ The API follows the [JSend](https://github.com/omniti-labs/jsend) standard:
     "taxAmount": 190000,
     "totalAmount": 1190000,
     "exentAmount": null,
-    "siiResolution": "Res. Ex. SII N°80 of 22-08-2014",
+    "siiResolution": "Res. Ex. SII N°80 del 22-08-2014",
     "observations": null
   },
   "events": [
@@ -310,37 +307,37 @@ The API follows the [JSend](https://github.com/omniti-labs/jsend) standard:
 
 ---
 
-## PDF Validations
+## Validaciones del PDF
 
-- Valid `%PDF-` signature in file header
-- Maximum size: **10 MB**
-- Extension: must end in `.pdf`
-- File name must not contain invalid characters: `\ / : * ? " < > |`
-
----
-
-## HTTP Errors
-
-| Class                      | Status | When                              |
-| -------------------------- | ------ | --------------------------------- |
-| `BadRequestError`          | 400    | Invalid request or missing fields |
-| `NotFoundError`            | 404    | Resource not found                |
-| `UnprocessableEntityError` | 422    | Invalid or unprocessable PDF      |
-| `InternalServerError`      | 500    | Internal server error             |
+- Firma válida `%PDF-` en el header del archivo
+- Tamaño máximo: **10 MB**
+- Extensión: debe terminar en `.pdf`
+- Nombre sin caracteres inválidos: `\ / : * ? " < > |`
 
 ---
 
-## Requirements
+## Errores HTTP
+
+| Clase                      | Status | Cuándo                              |
+| -------------------------- | ------ | ----------------------------------- |
+| `BadRequestError`          | 400    | Request inválido o campos faltantes |
+| `NotFoundError`            | 404    | Recurso no encontrado               |
+| `UnprocessableEntityError` | 422    | PDF inválido o no procesable        |
+| `InternalServerError`      | 500    | Error interno del servidor          |
+
+---
+
+## Requisitos
 
 - Node.js >= 20
 - pnpm >= 10
 - MongoDB
 - AWS account (S3 + SQS)
-- OpenAI API Key
+- API Key de OpenAI
 
 ---
 
-## Installation
+## Instalación
 
 ```bash
 pnpm install
@@ -348,7 +345,7 @@ pnpm install
 
 ---
 
-## Configuration
+## Configuración
 
 ### API (`src/apps/api/.env`)
 
@@ -378,22 +375,22 @@ LOG_LEVEL=info
 
 ---
 
-## Commands
+## Comandos
 
 ```bash
-# Install dependencies
+# Instalar dependencias
 pnpm install
 
-# Development (API + Worker in parallel)
+# Desarrollo (API + Worker en paralelo)
 pnpm dev
 
-# API only
+# Solo API
 pnpm dev:api
 
-# Worker only
+# Solo Worker
 pnpm dev:worker
 
-# Build all packages
+# Build todos los packages
 pnpm -w build
 
 # Lint
@@ -402,7 +399,7 @@ pnpm -w lint
 # Tests
 pnpm -w test
 
-# Tests in watch mode
+# Tests en modo watch
 pnpm -w test:watch
 ```
 
@@ -412,21 +409,21 @@ pnpm -w test:watch
 
 ### `POST /invoices/upload`
 
-Upload a PDF invoice for asynchronous processing.
+Sube una factura PDF para procesamiento asíncrono.
 
 **Content-Type:** `multipart/form-data`
 
-| Field    | Type   | Required | Description           |
-| -------- | ------ | -------- | --------------------- |
-| file     | File   | ✓        | PDF file (max. 10 MB) |
-| fileName | string | ✓        | File name             |
+| Campo    | Tipo   | Requerido | Descripción              |
+| -------- | ------ | --------- | ------------------------ |
+| file     | File   | ✓         | Archivo PDF (máx. 10 MB) |
+| fileName | string | ✓         | Nombre del archivo       |
 
-**Example:**
+**Ejemplo:**
 
 ```bash
 curl -X POST http://localhost:3000/invoices/upload \
-  --form 'file=@"/path/to/invoice.pdf"' \
-  --form 'fileName="invoice.pdf"'
+  --form 'file=@"/path/to/factura.pdf"' \
+  --form 'fileName="factura.pdf"'
 ```
 
 **Response `202 Accepted`:**
@@ -436,50 +433,50 @@ curl -X POST http://localhost:3000/invoices/upload \
   "status": "success",
   "data": {
     "invoiceId": "80f0dfae-ec51-4058-af68-b5b00c8d4bca",
-    "storageKey": "invoices/80f0dfae-ec51-4058-af68-b5b00c8d4bca-invoice.pdf"
+    "storageKey": "invoices/80f0dfae-ec51-4058-af68-b5b00c8d4bca-factura.pdf"
   }
 }
 ```
 
 ---
 
-## Tech Stack
+## Stack Tecnológico
 
-| Layer           | Technology           |
+| Capa            | Tecnología           |
 | --------------- | -------------------- |
-| Language        | TypeScript 5         |
+| Lenguaje        | TypeScript 5         |
 | Runtime         | Node.js 20+          |
-| Database        | MongoDB (Mongoose)   |
+| Base de datos   | MongoDB (Mongoose)   |
 | Storage         | AWS S3               |
-| Messaging       | AWS SQS              |
+| Mensajería      | AWS SQS              |
 | LLM             | OpenAI (gpt-4o-mini) |
-| PDF Extraction  | pdf-parse            |
-| Validation      | Zod                  |
+| Extracción PDF  | pdf-parse            |
+| Validación      | Zod                  |
 | Logger          | pino                 |
-| HTTP Format     | JSend                |
+| Formato HTTP    | JSend                |
 | Testing         | Jest + ts-jest       |
 | Package manager | pnpm workspaces      |
 
 ---
 
-## Design Decisions
+## Decisiones de diseño
 
-**Ports & Adapters** — the domain defines pure interfaces and knows nothing about AWS, Mongoose, or OpenAI. Swapping MongoDB for DynamoDB or OpenAI for Anthropic means changing one adapter in infra without touching the domain.
+**Ports & Adapters** — el domain define interfaces puras y no sabe nada de AWS, Mongoose ni OpenAI. Cambiar de MongoDB a DynamoDB o de OpenAI a Anthropic es cambiar un adapter en infra sin tocar el domain.
 
-**JSend** — standard HTTP response format that distinguishes between `success`, `fail` (client error), and `error` (server error). Makes response handling predictable on the client side.
+**JSend** — formato estándar para respuestas HTTP que distingue entre `success`, `fail` (error del cliente) y `error` (error del servidor). Facilita el manejo de respuestas en el cliente.
 
-**Typed HTTP errors** — `BadRequestError`, `NotFoundError`, `UnprocessableEntityError` extend `HttpError` with a built-in `statusCode`. The router catches them and formats the response automatically.
+**Errores HTTP tipados** — `BadRequestError`, `NotFoundError`, `UnprocessableEntityError` extienden `HttpError` con `statusCode` integrado. El router los captura y formatea la respuesta automáticamente.
 
-**UUID in the S3 key** — `invoices/{uuid}-{fileName}` lets the worker extract the `invoiceId` directly from the S3 event without extra database lookups or custom metadata.
+**UUID en el S3 key** — `invoices/{uuid}-{fileName}` permite al worker extraer el `invoiceId` directamente del evento S3 sin llamadas extra a la base de datos ni metadata adicional.
 
-**InMemory fallback in the worker** — if `MONGODB_URI` is not set, the worker falls back to `InMemoryInvoiceRepository`. Makes local development and testing possible without a running MongoDB instance.
+**InMemory fallback en el worker** — si `MONGODB_URI` no está definida, el worker usa `InMemoryInvoiceRepository`. Permite correr y testear el worker localmente sin MongoDB.
 
-**json_object mode in OpenAI** — the extractor uses `response_format: { type: 'json_object' }` combined with a schema-first system prompt. Eliminates brittle text parsing and guarantees valid JSON in every response.
+**json_object mode en OpenAI** — el extractor usa `response_format: { type: 'json_object' }` junto a un system prompt schema-first que describe el JSON esperado. Elimina el parseo frágil de texto libre y garantiza JSON válido en la respuesta.
 
-**Asynchronous processing** — the API responds `202 Accepted` immediately. LLM processing (5–30 seconds) happens in the worker without blocking the HTTP request.
+**Procesamiento asíncrono** — la API responde `202 Accepted` inmediatamente. El procesamiento con el LLM (5-30 segundos) ocurre en el worker sin bloquear el request HTTP.
 
 ---
 
-## License
+## Licencia
 
 MIT
