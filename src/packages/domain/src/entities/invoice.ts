@@ -1,4 +1,6 @@
-export type InvoiceStatus = 'pending';
+import { ExtractedInvoiceData } from '../ports/invoice-data-extractor';
+
+export type InvoiceStatus = 'pending' | 'processing' | 'processed' | 'failed';
 
 export interface InvoiceEvent {
   status: InvoiceStatus;
@@ -14,6 +16,7 @@ export interface InvoiceFileMetadata {
 export interface Invoice {
   id: string;
   status: InvoiceStatus;
+  extractedData?: ExtractedInvoiceData;
   createdAt: string;
   events: InvoiceEvent[];
   file: InvoiceFileMetadata;

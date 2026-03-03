@@ -6,6 +6,14 @@
   "types": "src/index.ts",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
-    "@procureai/domain": "workspace:*"
+    "@aws-sdk/client-sqs": "^3.995.0",
+    "@procureai/domain": "workspace:*",
+    "@procureai/shared": "workspace:*",
+    "mongoose": "^9.2.3",
+    "openai": "^4.0.0",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@types/pdf-parse": "^1.1.5"
   }
 }

@@ -106,17 +106,18 @@ export class UploadInvoiceUseCase {
       }
     };
 
+    await this.invoiceRepository.save(invoice);
+
+    logger.info({ invoiceId, storageKey: key }, 'Invoice saved successfully');
+
     await this.fileStore.saveFile({
+      invoiceId,
       key,
       bytes: input.bytes,
       contentType: PDF_CONTENT_TYPE
     });
 
     logger.debug({ key }, 'File saved to store');
-
-    await this.invoiceRepository.save(invoice);
-
-    logger.info({ invoiceId, storageKey: key }, 'Invoice saved successfully');
 
     return { invoiceId, storageKey: key };
   }

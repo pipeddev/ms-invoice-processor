@@ -45,7 +45,7 @@ export const makeUploadInvoiceController = (
     );
 
     return {
-      statusCode: 201,
+      statusCode: 202,
       body: jsend.success(result)
     };
   };
